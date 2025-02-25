@@ -192,8 +192,11 @@ $(() => {
             console.log("Modal shown, setting _isVisible to true");
             self._isVisible = true;
 
-            console.log("Calling handleDisplayModal with toolIdx:", params.toolIdx, "isBackup:", params.isBackup);
-            await handleDisplayModal(params.toolIdx, params.isBackup);
+            // Get the values from the observables
+            const toolIdx = params.toolIdx();
+            const isBackup = params.isBackup();
+            console.log("Calling handleDisplayModal with toolIdx:", toolIdx, "isBackup:", isBackup);
+            await handleDisplayModal(toolIdx, isBackup);
         });
         $(document).on("hidden", SpoolmanModalSelectSpoolComponent.modalSelector, async () => {
             console.log("Modal hidden, setting _isVisible to false");
