@@ -472,6 +472,7 @@ $(() => {
 
             self.templateData.modals.selectSpool.eventsSink.subscribe((newEvent) => {
                 if (newEvent.type === 'onSelectSpoolForTool') {
+                    console.log("Spool selected event received:", newEvent);
                     updateSelectedSpools();
                 }
             });

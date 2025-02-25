@@ -1,4 +1,5 @@
 $(() => {
+    console.log("Loading updateBackupSpool API");
     window.pluginSpoolmanApi = window.pluginSpoolmanApi || {};
 
     /**
@@ -24,6 +25,7 @@ $(() => {
      * }>}
      */
     window.pluginSpoolmanApi.updateBackupSpool = async (params) => {
+        console.log("updateBackupSpool called with params:", params);
         try {
             const response = await OctoPrint.postJson(
                 "plugin/Spoolman/self/backup-spool",

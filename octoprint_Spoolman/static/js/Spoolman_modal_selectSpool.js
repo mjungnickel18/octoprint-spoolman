@@ -38,6 +38,7 @@ $(() => {
         };
 
         const refreshView = async () => {
+            console.log("refreshView called, _isVisible:", self._isVisible);
             if (!self._isVisible) {
                 return;
             }
@@ -115,23 +116,33 @@ $(() => {
          * @param {number} spoolId
          */
         const handleSelectSpoolForTool = async (toolIdx, spoolId) => {
+            console.log("handleSelectSpoolForTool called with toolIdx:", toolIdx, "spoolId:", spoolId, "isBackup:", self.templateData.isBackup());
+            
             let request;
             
             if (self.templateData.isBackup()) {
+                console.log("Using updateBackupSpool API");
                 request = await pluginSpoolmanApi.updateBackupSpool({ toolIdx, spoolId });
             } else {
+                console.log("Using updateActiveSpool API");
                 request = await pluginSpoolmanApi.updateActiveSpool({ toolIdx, spoolId });
             }
 
+            console.log("API request result:", request);
+
             // TODO: Add error handling for modal
             if (!request.isSuccess) {
+                console.error("API request failed:", request.error);
                 return;
             }
 
+            console.log("Reloading settings view model");
             await reloadSettingsViewModel(self.settingsViewModel());
 
+            console.log("Hiding modal");
             self.modals.selectSpool.modal("hide");
 
+            console.log("Sending event to event sink");
             self.eventsSink({
                 type: 'onSelectSpoolForTool',
                 isBackup: self.templateData.isBackup(),
@@ -178,12 +189,15 @@ $(() => {
         /** -- end of bindings -- */
 
         $(document).on("shown", SpoolmanModalSelectSpoolComponent.modalSelector, async () => {
-            this._isVisible = true;
+            console.log("Modal shown, setting _isVisible to true");
+            self._isVisible = true;
 
-            await handleDisplayModal(params.toolIdx(), params.isBackup());
+            console.log("Calling handleDisplayModal with toolIdx:", params.toolIdx, "isBackup:", params.isBackup);
+            await handleDisplayModal(params.toolIdx, params.isBackup);
         });
         $(document).on("hidden", SpoolmanModalSelectSpoolComponent.modalSelector, async () => {
-            this._isVisible = false;
+            console.log("Modal hidden, setting _isVisible to false");
+            self._isVisible = false;
         });
 
         const init = () => {

@@ -39,6 +39,37 @@ const createApi = () => {
         return request;
     };
 
+    /**
+     * @param {{ toolIdx: number, spoolId: string|undefined }} params
+     */
+    const sharedUpdateBackupSpool = async ({ toolIdx, spoolId }) => {
+        console.log("sharedUpdateBackupSpool called with params:", { toolIdx, spoolId });
+        try {
+            const response = await OctoPrint.postJson(
+                "plugin/Spoolman/self/backup-spool",
+                {
+                    toolIdx: toolIdx,
+                    spoolId: spoolId,
+                }
+            );
+
+            return {
+                isSuccess: true,
+                payload: {
+                    response: response,
+                },
+            };
+        } catch (error) {
+            console.error("Request error", error);
+            return {
+                isSuccess: false,
+                error: {
+                    response: error.responseJSON,
+                },
+            };
+        }
+    };
+
     if (!cacheGetSpoolmanSpoolsResult.isSuccess) {
         throw new Error('[Spoolman][api] Could not create cached "getSpoolmanSpools"');
     }
@@ -51,6 +82,7 @@ const createApi = () => {
         getSpoolmanSpools: cacheGetSpoolmanSpoolsResult.getter,
         getCurrentJobRequirements: sharedGetCurrentJobRequirements,
         updateActiveSpool: sharedUpdateActiveSpool,
+        updateBackupSpool: sharedUpdateBackupSpool,
     };
 
     /**
