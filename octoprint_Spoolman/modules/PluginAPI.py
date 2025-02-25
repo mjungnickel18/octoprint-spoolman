@@ -73,8 +73,12 @@ class PluginAPI(octoprint.plugin.BlueprintPlugin):
         if str(toolId) not in spools:
             spools[str(toolId)] = {}
 
+        # Create a structure that will be compatible with the JavaScript code
+        # The JavaScript code expects an object with a spoolId property that can be accessed
+        # either as a function or as a property
         spools[str(toolId)] = {
             'spoolId': spoolId,
+            'spoolId_observable': True  # Flag to indicate this is an observable in JavaScript
         }
         self._logger.debug("Updated active spools: %s", spools)
 
@@ -112,8 +116,12 @@ class PluginAPI(octoprint.plugin.BlueprintPlugin):
         if str(toolId) not in spools:
             spools[str(toolId)] = {}
 
+        # Create a structure that will be compatible with the JavaScript code
+        # The JavaScript code expects an object with a spoolId property that can be accessed
+        # either as a function or as a property
         spools[str(toolId)] = {
             'spoolId': spoolId,
+            'spoolId_observable': True  # Flag to indicate this is an observable in JavaScript
         }
         self._logger.debug("Updated backup spools: %s", spools)
 

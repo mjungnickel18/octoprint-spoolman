@@ -55,9 +55,6 @@ class SpoolmanPlugin(
             payload = eventPayload
         )
 
-    def on_after_startup(self):
-        self._logger.info("[Spoolman][init] Plugin activated")
-
     # Printing events handlers
     def on_event(self, event, payload):
         if (
@@ -134,6 +131,20 @@ class SpoolmanPlugin(
         }
 
         return settings
+        
+    def on_after_startup(self):
+        self._logger.info("[Spoolman][init] Plugin activated")
+        
+        # Initialize settings if they don't exist
+        if not self._settings.get([SettingsKeys.SELECTED_SPOOL_IDS]):
+            self._settings.set([SettingsKeys.SELECTED_SPOOL_IDS], {})
+            self._settings.save()
+            self._logger.info("[Spoolman][init] Initialized SELECTED_SPOOL_IDS")
+            
+        if not self._settings.get([SettingsKeys.BACKUP_SPOOL_IDS]):
+            self._settings.set([SettingsKeys.BACKUP_SPOOL_IDS], {})
+            self._settings.save()
+            self._logger.info("[Spoolman][init] Initialized BACKUP_SPOOL_IDS")
 
     def on_settings_save(self, data):
         self._logger.info("[Spoolman][Settings] Saved data")
