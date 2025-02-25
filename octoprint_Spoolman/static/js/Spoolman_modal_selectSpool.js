@@ -22,7 +22,6 @@ $(() => {
 
         self.settingsViewModel = params.settingsViewModel;
         self.eventsSink = params.eventsSink;
-        self.isBackup = params.isBackup || false;
 
         self._isVisible = false;
 
