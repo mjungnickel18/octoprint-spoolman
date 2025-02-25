@@ -61,6 +61,7 @@
     <!-- /ko -->
 
     <div data-bind="visible: (!templateData.isLoadingData() && !templateData.loadingError())">
+        <h5>Active Spools</h5>
         <div
             id="selectedSpoolsByToolIdx"
             data-bind="foreach: templateData.selectedSpoolsByToolIdx"
@@ -192,6 +193,147 @@
                                 class="btn btn-mini"
                                 data-bind="click: $parent.templateApi.handleOpenSpoolSelector.bind($data, $index())"
                                 title="Change Spool"
+                            >
+                                ...
+                            </button>
+                        </div>
+                    </div>
+                <!-- /ko -->
+            </div>
+        </div>
+
+        <h5>Backup Spools</h5>
+        <div
+            id="backupSpoolsByToolIdx"
+            data-bind="foreach: templateData.backupSpoolsByToolIdx"
+        >
+            <div class="tool-row">
+                <!-- ko ifnot: $data.spoolId && $data.spoolData && $data.spoolDisplayData -->
+                    <div style="display: flex;">
+                        <div>
+                            <span
+                                class="color-preview"
+                                style="flex-shrink: 0;"
+                            ></span>
+                        </div>
+                        <div class="sidebar-spool-info">
+                            <!-- ko if: $parent.templateData.backupSpoolsByToolIdx().length > 1 -->
+                                <div>
+                                    <b>Tool #<span data-bind="text: $index()"></span>:</b>
+                                </div>
+                            <!-- /ko -->
+                            <div>
+                                <!-- ko if: $data.spoolId -->
+                                    <i class="text-error">Unknown backup spool selected</i>
+                                <!-- /ko -->
+                                <!-- ko ifnot: $data.spoolId -->
+                                    <i class="muted">No backup spool selected</i>
+                                <!-- /ko -->
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-shrink: 0;">
+                        <div class="btn-group">
+                            <!-- ko if: $data.spoolId -->
+                                <button
+                                    class="btn btn-mini"
+                                    data-bind="click: $parent.templateApi.handleDeselectBackupSpool.bind($data, $index())"
+                                    title="Deselect Backup Spool"
+                                >
+                                    <span class="icon-remove"></span>
+                                </button>
+                            <!-- /ko -->
+                            <button
+                                class="btn btn-mini"
+                                data-bind="click: $parent.templateApi.handleOpenBackupSpoolSelector.bind($data, $index())"
+                                title="Select backup spool"
+                            >
+                                ...
+                            </button>
+                        </div>
+                    </div>
+                <!-- /ko -->
+
+                <!-- ko if: $data.spoolData && $data.spoolDisplayData -->
+                    <div style="display: flex;">
+                        <div>
+                            <span
+                                class="color-preview"
+                                style="flex-shrink: 0;"
+                                data-bind="
+                                    style: { [$data.spoolDisplayData.filament.color.cssProperty]: $data.spoolDisplayData.filament.color.cssValue },
+                                    attr: { title: 'Name: ' + $data.spoolDisplayData.filament.name.displayValue }
+                                "
+                            ></span>
+                        </div>
+                        <div class="sidebar-spool-info">
+                            <!-- ko if: $parent.templateData.backupSpoolsByToolIdx().length > 1 -->
+                                <div>
+                                    <b>Tool #<span data-bind="text: $index()"></span>:</b>
+                                </div>
+                            <!-- /ko -->
+                            <div>
+                                <span>[<span data-bind="
+                                    text: $data.spoolDisplayData.filament.material.displayShort,
+                                    attr: { title: 'Material: ' + $data.spoolDisplayData.filament.material.displayValue }
+                                "></span>]</span>
+                                <span data-bind="
+                                    text: $data.spoolDisplayData.filament.name.displayValue,
+                                    attr: { title: 'Name: ' + $data.spoolDisplayData.filament.name.displayValue }
+                                "></span>
+                                <i>(<span data-bind="
+                                    text: $data.spoolDisplayData.filament.vendor.name.displayValue,
+                                    attr: { title: 'Manufacturer: ' + $data.spoolDisplayData.filament.vendor.name.displayValue }
+                                "></span>)</i>
+                            </div>
+                            <div>
+                                <span>
+                                    <span data-bind="
+                                        text: $data.spoolDisplayData.remaining_weight.displayValue,
+                                        attr: {title: 'Remaining weight: ' + $data.spoolDisplayData.remaining_weight.displayValue },
+                                        class: ($data.spoolDisplayData.remaining_weight.isValid) ? '' : 'text-error'
+                                    "></span>
+                                </span>
+                                <span data-bind="visible: $data.spoolDisplayData.remaining_weight.isValid">
+                                    / <span data-bind="
+                                        text: $data.spoolDisplayData.initial_weight.displayValue,
+                                        attr: {title: 'Initial weight: ' + $data.spoolDisplayData.initial_weight.displayValue},
+                                    "></span>
+                                </span>
+                            </div>
+                            <div
+                                class="muted"
+                                data-bind="visible: ($parent.templateData.optionalFieldVisibility.spoolID() || $parent.templateData.optionalFieldVisibility.lotNumber())"
+                            >
+                                <span data-bind="visible: $parent.templateData.optionalFieldVisibility.spoolID">
+                                    <span data-bind="attr: { title: 'ID: ' + $data.spoolId }">
+                                        #<span data-bind="text: $data.spoolId"></span>
+                                    </span>
+                                </span>
+                                <span
+                                    data-bind="visible: ($parent.templateData.optionalFieldVisibility.spoolID() && $parent.templateData.optionalFieldVisibility.lotNumber())"
+                                >|</span>
+                                <span data-bind="visible: $parent.templateData.optionalFieldVisibility.lotNumber">
+                                    <span data-bind="attr: { title: 'Lot #: ' + $data.spoolDisplayData.lot.displayValue }">
+                                        Lot <span data-bind="text: $data.spoolDisplayData.lot.displayShort"></span>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-shrink: 0;">
+                        <div class="btn-group">
+                            <button
+                                class="btn btn-mini"
+                                data-bind="click: $parent.templateApi.handleDeselectBackupSpool.bind($data, $index())"
+                                title="Deselect Backup Spool"
+                            >
+                                <span class="icon-remove"></span>
+                            </button>
+                            <button
+                                class="btn btn-mini"
+                                data-bind="click: $parent.templateApi.handleOpenBackupSpoolSelector.bind($data, $index())"
+                                title="Change Backup Spool"
                             >
                                 ...
                             </button>

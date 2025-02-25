@@ -22,6 +22,7 @@ $(() => {
 
         self.settingsViewModel = params.settingsViewModel;
         self.eventsSink = params.eventsSink;
+        self.isBackup = params.isBackup || false;
 
         self._isVisible = false;
 
@@ -45,6 +46,7 @@ $(() => {
             // TODO: Add error handling for modal
 
             const toolIdx = self.templateData.toolIdx();
+            const isBackup = self.templateData.isBackup();
 
             self.templateData.loadingError(undefined);
             self.templateData.isLoadingData(true);
@@ -63,8 +65,9 @@ $(() => {
 
             const spoolmanSpools = spoolmanSpoolsResult.payload.response.data.spools;
 
-            const selectedSpoolIds = getPluginSettings().selectedSpoolIds;
-            const toolSpoolId = selectedSpoolIds[toolIdx]?.spoolId();
+            // Get the current spool ID based on whether we're selecting a primary or backup spool
+            const spoolIdsSettings = isBackup ? getPluginSettings().backupSpoolIds : getPluginSettings().selectedSpoolIds;
+            const toolSpoolId = spoolIdsSettings[toolIdx]?.spoolId();
             const toolSpool = spoolmanSpools.find((spool) => {
                 return String(spool.id) === toolSpoolId;
             });
@@ -91,14 +94,19 @@ $(() => {
 
             self.templateData.tableAttributeVisibility.lot(Boolean(getPluginSettings().showLotNumberColumnInSpoolSelectModal()));
 
+            // Update modal title based on whether we're selecting a primary or backup spool
+            self.templateData.modalTitle(isBackup ? "Select Backup Spool" : "Select Spool");
+
             refreshModalLayout();
         };
 
         /**
          * @param {number} toolIdx
+         * @param {boolean} isBackup
          */
-        const handleDisplayModal = async (toolIdx) => {
+        const handleDisplayModal = async (toolIdx, isBackup) => {
             self.templateData.toolIdx(toolIdx);
+            self.templateData.isBackup(isBackup);
 
             await refreshView();
         };
@@ -108,7 +116,13 @@ $(() => {
          * @param {number} spoolId
          */
         const handleSelectSpoolForTool = async (toolIdx, spoolId) => {
-            const request = await pluginSpoolmanApi.updateActiveSpool({ toolIdx, spoolId });
+            let request;
+            
+            if (self.templateData.isBackup()) {
+                request = await pluginSpoolmanApi.updateBackupSpool({ toolIdx, spoolId });
+            } else {
+                request = await pluginSpoolmanApi.updateActiveSpool({ toolIdx, spoolId });
+            }
 
             // TODO: Add error handling for modal
             if (!request.isSuccess) {
@@ -121,6 +135,7 @@ $(() => {
 
             self.eventsSink({
                 type: 'onSelectSpoolForTool',
+                isBackup: self.templateData.isBackup(),
             });
         };
 
@@ -145,8 +160,10 @@ $(() => {
             loadingError: ko.observable(undefined),
 
             toolIdx: ko.observable(undefined),
+            isBackup: ko.observable(false),
             toolCurrentSpoolId: ko.observable(undefined),
             toolCurrentSpool: ko.observable(undefined),
+            modalTitle: ko.observable("Select Spool"),
 
             tableAttributeVisibility: {
                 id: true,
@@ -164,7 +181,7 @@ $(() => {
         $(document).on("shown", SpoolmanModalSelectSpoolComponent.modalSelector, async () => {
             this._isVisible = true;
 
-            await handleDisplayModal(params.toolIdx());
+            await handleDisplayModal(params.toolIdx(), params.isBackup());
         });
         $(document).on("hidden", SpoolmanModalSelectSpoolComponent.modalSelector, async () => {
             this._isVisible = false;

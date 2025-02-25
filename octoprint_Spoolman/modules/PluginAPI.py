@@ -84,6 +84,37 @@ class PluginAPI(octoprint.plugin.BlueprintPlugin):
         return flask.jsonify({
             "data": {}
         })
+        
+    @octoprint.plugin.BlueprintPlugin.route("/self/backup-spool", methods=["POST"])
+    def handleUpdateBackupSpool(self):
+        self._logger.debug("API: POST /self/backup-spool")
+
+        jsonData = flask.request.json
+
+        toolId = self._getIntFromJSONOrNone("toolIdx", jsonData)
+        spoolId = self._getStringFromJSONOrNone("spoolId", jsonData)
+
+        spools = self._settings.get([SettingsKeys.BACKUP_SPOOL_IDS])
+
+        spools[toolId] = {
+            'spoolId': spoolId,
+        }
+
+        self._settings.set([SettingsKeys.BACKUP_SPOOL_IDS], spools)
+        self._settings.save()
+
+        self.triggerPluginEvent(
+            Events.PLUGIN_SPOOLMAN_SPOOL_SELECTED,
+            {
+                'toolIdx': toolId,
+                'spoolId': spoolId,
+                'isBackup': True,
+            }
+        )
+
+        return flask.jsonify({
+            "data": {}
+        })
 
     @octoprint.plugin.BlueprintPlugin.route("/self/current-job-requirements", methods=["GET"])
     def handleGetCurrentJobRequirements(self):

@@ -78,6 +78,7 @@ $(() => {
                 length: currentExtrudersCount
             }, () => undefined)
 
+            // Update primary spools
             const selectedSpoolIds = getPluginSettings().selectedSpoolIds;
             const selectedSpools = extruders.map((_, extruderIdx) => {
                 const spoolId = selectedSpoolIds[extruderIdx]?.spoolId();
@@ -94,6 +95,23 @@ $(() => {
             self.templateData.selectedSpoolsByToolIdx(selectedSpools);
             self.templateData.selectedSpoolsByToolIdx.valueHasMutated();
 
+            // Update backup spools
+            const backupSpoolIds = getPluginSettings().backupSpoolIds;
+            const backupSpools = extruders.map((_, extruderIdx) => {
+                const spoolId = backupSpoolIds[extruderIdx]?.spoolId();
+
+                const spoolData = spoolmanSpools.find((spool) => String(spool.id) === spoolId);
+
+                return {
+                    spoolId,
+                    spoolData,
+                    spoolDisplayData: spoolData && toSpoolForDisplay(spoolData, { constants: self.constants }),
+                };
+            });
+
+            self.templateData.backupSpoolsByToolIdx(backupSpools);
+            self.templateData.backupSpoolsByToolIdx.valueHasMutated();
+
             self.templateData.spoolmanUrl(getPluginSettings().spoolmanUrl());
 
             self.templateData.optionalFieldVisibility.lotNumber(Boolean(getPluginSettings().showLotNumberInSidebar()));
@@ -105,6 +123,17 @@ $(() => {
          */
         const handleOpenSpoolSelector = async (toolIdx) => {
             self.templateData.modals.selectSpool.toolIdx(toolIdx);
+            self.templateData.modals.selectSpool.isBackup(false);
+
+            self.modals.selectSpool().modal("show");
+        };
+
+        /**
+         * @param {number} toolIdx
+         */
+        const handleOpenBackupSpoolSelector = async (toolIdx) => {
+            self.templateData.modals.selectSpool.toolIdx(toolIdx);
+            self.templateData.modals.selectSpool.isBackup(true);
 
             self.modals.selectSpool().modal("show");
         };
@@ -118,6 +147,22 @@ $(() => {
          */
         const handleDeselectSpool = async (toolIdx) => {
             const request = await pluginSpoolmanApi.updateActiveSpool({ toolIdx, spoolId: undefined });
+
+            // TODO: Add error handling for modal
+            if (!request.isSuccess) {
+                return;
+            }
+
+            await reloadSettingsViewModel(self.settingsViewModel);
+
+            updateSelectedSpools();
+        };
+
+        /**
+         * @param {number} toolIdx
+         */
+        const handleDeselectBackupSpool = async (toolIdx) => {
+            const request = await pluginSpoolmanApi.updateBackupSpool({ toolIdx, spoolId: undefined });
 
             // TODO: Add error handling for modal
             if (!request.isSuccess) {
@@ -209,7 +254,9 @@ $(() => {
         };
         self.templateApi = {
             handleOpenSpoolSelector,
+            handleOpenBackupSpoolSelector,
             handleDeselectSpool,
+            handleDeselectBackupSpool,
             handleTryAgainOnError,
             handleForceRefresh,
         };
@@ -217,6 +264,7 @@ $(() => {
             isLoadingData: ko.observable(true),
             loadingError: ko.observable(undefined),
             selectedSpoolsByToolIdx: ko.observable([]),
+            backupSpoolsByToolIdx: ko.observable([]),
             spoolmanUrl: ko.observable(undefined),
 
             settingsViewModel: ko.observable(undefined),
@@ -230,6 +278,7 @@ $(() => {
                 selectSpool: {
                     toolIdx: ko.observable(undefined),
                     eventsSink: ko.observable(),
+                    isBackup: ko.observable(false),
                 },
                 confirmSpool: {
                     eventsSink: ko.observable(),
