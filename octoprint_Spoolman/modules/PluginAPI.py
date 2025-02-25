@@ -60,18 +60,27 @@ class PluginAPI(octoprint.plugin.BlueprintPlugin):
         self._logger.debug("API: POST /self/spool")
 
         jsonData = flask.request.json
+        self._logger.debug("Request JSON: %s", jsonData)
 
         toolId = self._getIntFromJSONOrNone("toolIdx", jsonData)
         spoolId = self._getStringFromJSONOrNone("spoolId", jsonData)
+        self._logger.debug("toolId: %s, spoolId: %s", toolId, spoolId)
 
         spools = self._settings.get([SettingsKeys.SELECTED_SPOOL_IDS])
+        self._logger.debug("Current active spools: %s", spools)
 
-        spools[toolId] = {
+        # Initialize spools[toolId] if it doesn't exist
+        if str(toolId) not in spools:
+            spools[str(toolId)] = {}
+
+        spools[str(toolId)] = {
             'spoolId': spoolId,
         }
+        self._logger.debug("Updated active spools: %s", spools)
 
         self._settings.set([SettingsKeys.SELECTED_SPOOL_IDS], spools)
         self._settings.save()
+        self._logger.debug("Settings saved")
 
         self.triggerPluginEvent(
             Events.PLUGIN_SPOOLMAN_SPOOL_SELECTED,
@@ -90,18 +99,27 @@ class PluginAPI(octoprint.plugin.BlueprintPlugin):
         self._logger.debug("API: POST /self/backup-spool")
 
         jsonData = flask.request.json
+        self._logger.debug("Request JSON: %s", jsonData)
 
         toolId = self._getIntFromJSONOrNone("toolIdx", jsonData)
         spoolId = self._getStringFromJSONOrNone("spoolId", jsonData)
+        self._logger.debug("toolId: %s, spoolId: %s", toolId, spoolId)
 
         spools = self._settings.get([SettingsKeys.BACKUP_SPOOL_IDS])
+        self._logger.debug("Current backup spools: %s", spools)
 
-        spools[toolId] = {
+        # Initialize spools[toolId] if it doesn't exist
+        if str(toolId) not in spools:
+            spools[str(toolId)] = {}
+
+        spools[str(toolId)] = {
             'spoolId': spoolId,
         }
+        self._logger.debug("Updated backup spools: %s", spools)
 
         self._settings.set([SettingsKeys.BACKUP_SPOOL_IDS], spools)
         self._settings.save()
+        self._logger.debug("Settings saved")
 
         self.triggerPluginEvent(
             Events.PLUGIN_SPOOLMAN_SPOOL_SELECTED,

@@ -44,15 +44,18 @@ $(() => {
         };
 
         const updateSelectedSpools = async () => {
+            console.log("updateSelectedSpools called");
             self.templateData.loadingError(undefined);
             self.templateData.isLoadingData(true);
 
             const spoolmanSpoolsResult = await pluginSpoolmanApi.getSpoolmanSpools();
+            console.log("spoolmanSpoolsResult:", spoolmanSpoolsResult);
 
             self.templateData.isLoadingData(false);
 
             if (!spoolmanSpoolsResult.isSuccess) {
                 const responseError = spoolmanSpoolsResult.error.response.error;
+                console.error("Error getting spools:", responseError);
 
                 const code = Object.values(self.constants.knownErrors).includes(responseError?.code)
                     ? responseError?.code
@@ -66,6 +69,7 @@ $(() => {
             }
 
             const spoolmanSpools = spoolmanSpoolsResult.payload.response.data.spools;
+            console.log("spoolmanSpools:", spoolmanSpools);
 
             const currentProfileData = self.settingsViewModel.printerProfiles.currentProfileData();
             const currentExtrudersCount = (
@@ -73,6 +77,7 @@ $(() => {
                     ? currentProfileData.extruder.count()
                     : 0
             );
+            console.log("currentExtrudersCount:", currentExtrudersCount);
 
             const extruders = Array.from({
                 length: currentExtrudersCount
@@ -80,10 +85,25 @@ $(() => {
 
             // Update primary spools
             const selectedSpoolIds = getPluginSettings().selectedSpoolIds;
+            console.log("selectedSpoolIds:", selectedSpoolIds);
+            
             const selectedSpools = extruders.map((_, extruderIdx) => {
-                const spoolId = selectedSpoolIds[extruderIdx]?.spoolId();
+                console.log("Processing extruder:", extruderIdx);
+                console.log("selectedSpoolIds[extruderIdx]:", selectedSpoolIds[extruderIdx]);
+                
+                // Check if spoolId is a function or a property
+                let spoolId;
+                if (selectedSpoolIds[extruderIdx]) {
+                    if (typeof selectedSpoolIds[extruderIdx].spoolId === 'function') {
+                        spoolId = selectedSpoolIds[extruderIdx].spoolId();
+                    } else {
+                        spoolId = selectedSpoolIds[extruderIdx].spoolId;
+                    }
+                }
+                console.log("spoolId for extruder", extruderIdx, ":", spoolId);
 
                 const spoolData = spoolmanSpools.find((spool) => String(spool.id) === spoolId);
+                console.log("spoolData for extruder", extruderIdx, ":", spoolData);
 
                 return {
                     spoolId,
@@ -91,16 +111,32 @@ $(() => {
                     spoolDisplayData: spoolData && toSpoolForDisplay(spoolData, { constants: self.constants }),
                 };
             });
+            console.log("selectedSpools:", selectedSpools);
 
             self.templateData.selectedSpoolsByToolIdx(selectedSpools);
             self.templateData.selectedSpoolsByToolIdx.valueHasMutated();
 
             // Update backup spools
             const backupSpoolIds = getPluginSettings().backupSpoolIds;
+            console.log("backupSpoolIds:", backupSpoolIds);
+            
             const backupSpools = extruders.map((_, extruderIdx) => {
-                const spoolId = backupSpoolIds[extruderIdx]?.spoolId();
+                console.log("Processing backup for extruder:", extruderIdx);
+                console.log("backupSpoolIds[extruderIdx]:", backupSpoolIds[extruderIdx]);
+                
+                // Check if spoolId is a function or a property
+                let spoolId;
+                if (backupSpoolIds[extruderIdx]) {
+                    if (typeof backupSpoolIds[extruderIdx].spoolId === 'function') {
+                        spoolId = backupSpoolIds[extruderIdx].spoolId();
+                    } else {
+                        spoolId = backupSpoolIds[extruderIdx].spoolId;
+                    }
+                }
+                console.log("backup spoolId for extruder", extruderIdx, ":", spoolId);
 
                 const spoolData = spoolmanSpools.find((spool) => String(spool.id) === spoolId);
+                console.log("backup spoolData for extruder", extruderIdx, ":", spoolData);
 
                 return {
                     spoolId,
@@ -108,6 +144,7 @@ $(() => {
                     spoolDisplayData: spoolData && toSpoolForDisplay(spoolData, { constants: self.constants }),
                 };
             });
+            console.log("backupSpools:", backupSpools);
 
             self.templateData.backupSpoolsByToolIdx(backupSpools);
             self.templateData.backupSpoolsByToolIdx.valueHasMutated();
@@ -186,7 +223,15 @@ $(() => {
                 const selectedSpoolIds = getPluginSettings().selectedSpoolIds;
 
                 const spoolTool = Object.entries(selectedSpoolIds)
-                    .find(([ toolIdx, toolProps ]) => toolProps.spoolId() === spoolId);
+                    .find(([ toolIdx, toolProps ]) => {
+                        let currentSpoolId;
+                        if (typeof toolProps.spoolId === 'function') {
+                            currentSpoolId = toolProps.spoolId();
+                        } else {
+                            currentSpoolId = toolProps.spoolId;
+                        }
+                        return currentSpoolId === spoolId;
+                    });
                 const [ spoolToolIdx ] = spoolTool ?? [ undefined ];
 
                 const spoolUsedLength = eventPayload.data.usedLength;

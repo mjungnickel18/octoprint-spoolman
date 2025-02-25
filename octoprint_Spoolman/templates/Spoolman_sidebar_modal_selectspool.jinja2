@@ -242,6 +242,14 @@
                     </a>
                 </span>
                 <span class="span4 text-right">
+                    <button
+                        class="btn btn-danger"
+                        data-bind="click: function() { templateApi.handleSelectSpoolForTool(templateData.toolIdx(), undefined); }"
+                        title="Deselect Spool"
+                    >
+                        <span class="icon-remove"></span>
+                        Deselect
+                    </button>
                     <a
                         href="#"
                         class="btn"
